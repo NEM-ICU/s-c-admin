@@ -5,6 +5,9 @@ export type MenuSection = {
   name: string;
   description: string | null;
   pdf_path: string | null;
+  image_paths: string[];
+  page_count: number;
+  version: number;
   display_order: number;
   is_active: boolean;
   created_at: string;

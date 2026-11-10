@@ -1,11 +1,13 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import {
+  deleteMenuCategory,
   fetchMenuSections,
   saveMenuSection,
   toggleMenuSectionActive,
 } from "../services/menuService";
 import {
   emptyMenuForm,
+  type ConversionProgress,
   type MenuSection,
   type SectionForm,
 } from "../types/menu";
@@ -19,6 +21,11 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Conversion & upload progress state
+  const [conversionProgress, setConversionProgress] =
+    useState<ConversionProgress | null>(null);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -59,6 +66,7 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
     });
     setPdfFile(null);
     setFormError("");
+    setConversionProgress(null);
     setEditorOpen(true);
   }, [sections]);
 
@@ -70,30 +78,44 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
       display_order: section.display_order,
       is_active: section.is_active,
       pdf_path: section.pdf_path,
+      image_paths: section.image_paths ?? [],
+      page_count: section.page_count ?? 0,
+      version: section.version ?? 1,
     });
     setPdfFile(null);
     setFormError("");
+    setConversionProgress(null);
     setEditorOpen(true);
   }, []);
 
   const closeEditor = useCallback(() => {
+    if (saving) return; // Disallow closing while converting/uploading
     setEditorOpen(false);
     setEditingSection(null);
     setPdfFile(null);
     setFormError("");
-  }, []);
+    setConversionProgress(null);
+  }, [saving]);
 
   const handleSave = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setSaving(true);
       setFormError("");
+      setConversionProgress(null);
 
       try {
-        await saveMenuSection(form, editingSection?.id, pdfFile);
+        await saveMenuSection(
+          form,
+          editingSection,
+          pdfFile,
+          setConversionProgress,
+        );
         setEditorOpen(false);
         onSuccess(
-          editingSection ? "Menu section updated." : "Menu section created.",
+          editingSection
+            ? `Menu section "${form.name}" updated successfully.`
+            : `Menu section "${form.name}" created successfully.`,
         );
         await loadSections();
       } catch (err) {
@@ -102,9 +124,46 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
         setFormError(msg);
       } finally {
         setSaving(false);
+        setConversionProgress(null);
       }
     },
     [form, editingSection, pdfFile, loadSections, onSuccess],
+  );
+
+  const handleDeleteSection = useCallback(
+    async (section: MenuSection) => {
+      const confirmed = window.confirm(
+        `Are you sure you want to permanently delete "${section.name}"?\n\nThis will remove its database record, original PDF, all generated WebP page images, and previous versions.\n\nThis action cannot be undone.`,
+      );
+      if (!confirmed) return;
+
+      setDeletingId(section.id);
+      try {
+        const { storageDeletedCount, warnings } =
+          await deleteMenuCategory(section);
+
+        if (warnings.length > 0) {
+          onError(
+            `Deleted category "${section.name}", but encountered storage warnings: ${warnings.join(", ")}`,
+          );
+        } else {
+          onSuccess(
+            `Permanently deleted category "${section.name}" (${storageDeletedCount} storage file(s) removed).`,
+          );
+        }
+
+        await loadSections();
+      } catch (err) {
+        onError(
+          err instanceof Error
+            ? err.message
+            : "Failed to delete menu category.",
+        );
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [loadSections, onSuccess, onError],
   );
 
   const handleToggleActive = useCallback(
@@ -141,6 +200,8 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
     filteredSections,
     loading,
     saving,
+    deletingId,
+    conversionProgress,
     search,
     setSearch,
     showInactive,
@@ -157,6 +218,7 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
     openEditSection,
     closeEditor,
     handleSave,
+    handleDeleteSection,
     handleToggleActive,
   };
 }

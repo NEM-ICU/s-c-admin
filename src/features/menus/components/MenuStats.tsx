@@ -1,5 +1,5 @@
 import StatCard from "@/components/ui/StatCard";
-import { BookOpen, Check, FileText } from "lucide-react";
+import { BookOpen, Check, Image as ImageIcon } from "lucide-react";
 import type { MenuSection } from "../types/menu";
 
 type MenuStatsProps = {
@@ -9,7 +9,10 @@ type MenuStatsProps = {
 export default function MenuStats({ sections }: MenuStatsProps) {
   const totalCount = sections.length;
   const activeCount = sections.filter((s) => s.is_active).length;
-  const pdfCount = sections.filter((s) => s.pdf_path).length;
+  const totalWebpPages = sections.reduce(
+    (sum, s) => sum + (s.page_count ?? 0),
+    0,
+  );
 
   return (
     <section className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -24,9 +27,9 @@ export default function MenuStats({ sections }: MenuStatsProps) {
         icon={<Check size={20} />}
       />
       <StatCard
-        label="PDF menus attached"
-        value={pdfCount}
-        icon={<FileText size={20} />}
+        label="WebP menu pages"
+        value={totalWebpPages}
+        icon={<ImageIcon size={20} />}
       />
     </section>
   );

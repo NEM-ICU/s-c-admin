@@ -4,11 +4,13 @@ import { formatDate } from "@/lib/utils";
 import {
   BookOpen,
   FileText,
+  Image as ImageIcon,
   LoaderCircle,
   Pencil,
   Plus,
   RefreshCw,
   Search,
+  Trash2,
 } from "lucide-react";
 import type { MenuSection } from "../types/menu";
 
@@ -16,6 +18,7 @@ type MenuListProps = {
   sections: MenuSection[];
   filteredSections: MenuSection[];
   loading: boolean;
+  deletingId: string | null;
   search: string;
   showInactive: boolean;
   onSearchChange: (search: string) => void;
@@ -23,6 +26,7 @@ type MenuListProps = {
   onRefresh: () => void;
   onAddNew: () => void;
   onEdit: (section: MenuSection) => void;
+  onDelete: (section: MenuSection) => void;
   onToggleActive: (section: MenuSection) => void;
 };
 
@@ -30,6 +34,7 @@ export default function MenuList({
   sections,
   filteredSections,
   loading,
+  deletingId,
   search,
   showInactive,
   onSearchChange,
@@ -37,6 +42,7 @@ export default function MenuList({
   onRefresh,
   onAddNew,
   onEdit,
+  onDelete,
   onToggleActive,
 }: MenuListProps) {
   return (
@@ -45,7 +51,8 @@ export default function MenuList({
         <div>
           <h2 className="font-semibold">All menu sections</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Change order, update files, or control visibility.
+            Change order, replace files with WebP conversion, or control
+            visibility.
           </p>
         </div>
 
@@ -115,7 +122,7 @@ export default function MenuList({
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-5 py-4 font-semibold">Section</th>
-                <th className="px-5 py-4 font-semibold">Files</th>
+                <th className="px-5 py-4 font-semibold">Pages & Files</th>
                 <th className="px-5 py-4 font-semibold">Order</th>
                 <th className="px-5 py-4 font-semibold">Status</th>
                 <th className="px-5 py-4 font-semibold">Updated</th>
@@ -126,18 +133,36 @@ export default function MenuList({
               {filteredSections.map((section) => (
                 <tr key={section.id} className="hover:bg-slate-50/70">
                   <td className="px-5 py-4">
-                    <p className="font-semibold text-slate-900">
-                      {section.name}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-slate-900">
+                        {section.name}
+                      </p>
+                      {section.version > 1 && (
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
+                          v{section.version}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-1 max-w-xs truncate text-xs text-slate-500">
                       {section.description || "No description"}
                     </p>
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex flex-col gap-2 text-xs text-slate-600">
-                      <span className="flex items-center gap-1.5">
-                        <FileText size={14} />
-                        {section.pdf_path ? "PDF attached" : "No PDF"}
+                    <div className="flex flex-col gap-1.5 text-xs text-slate-600">
+                      {section.page_count > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700">
+                          <ImageIcon size={14} />
+                          {section.page_count} WebP page
+                          {section.page_count === 1 ? "" : "s"}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-slate-400">
+                          <ImageIcon size={14} /> No WebP pages
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1.5 text-slate-500">
+                        <FileText size={13} />
+                        {section.pdf_path ? "Original PDF saved" : "No PDF"}
                       </span>
                     </div>
                   </td>
@@ -174,6 +199,20 @@ export default function MenuList({
                         className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium transition hover:bg-slate-100"
                       >
                         {section.is_active ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deletingId === section.id}
+                        onClick={() => onDelete(section)}
+                        aria-label={`Permanently delete ${section.name}`}
+                        className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {deletingId === section.id ? (
+                          <LoaderCircle size={14} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={14} />
+                        )}
+                        Delete
                       </button>
                     </div>
                   </td>

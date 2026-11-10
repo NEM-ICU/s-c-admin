@@ -8,6 +8,9 @@ export type SectionForm = {
   display_order: number;
   is_active: boolean;
   pdf_path: string | null;
+  image_paths: string[];
+  page_count: number;
+  version: number;
 };
 
 export const emptyMenuForm: SectionForm = {
@@ -16,4 +19,14 @@ export const emptyMenuForm: SectionForm = {
   display_order: 0,
   is_active: true,
   pdf_path: null,
+  image_paths: [],
+  page_count: 0,
+  version: 1,
+};
+
+export type ConversionProgress = {
+  stage: "converting" | "uploading" | "publishing";
+  current: number;
+  total: number;
+  message: string;
 };

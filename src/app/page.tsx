@@ -67,6 +67,8 @@ export default function DashboardPage() {
     filteredSections,
     loading: menusLoading,
     saving: menusSaving,
+    deletingId: menuDeletingId,
+    conversionProgress,
     search,
     setSearch,
     showInactive,
@@ -83,6 +85,7 @@ export default function DashboardPage() {
     openEditSection,
     closeEditor,
     handleSave,
+    handleDeleteSection,
     handleToggleActive,
   } = useMenus({
     onSuccess: notifySuccess,
@@ -149,6 +152,7 @@ export default function DashboardPage() {
         sections={sections}
         filteredSections={filteredSections}
         loading={menusLoading}
+        deletingId={menuDeletingId}
         search={search}
         showInactive={showInactive}
         onSearchChange={setSearch}
@@ -156,6 +160,7 @@ export default function DashboardPage() {
         onRefresh={() => void loadSections()}
         onAddNew={openNewSection}
         onEdit={openEditSection}
+        onDelete={(section) => void handleDeleteSection(section)}
         onToggleActive={(section) => void handleToggleActive(section)}
       />
 
@@ -165,6 +170,7 @@ export default function DashboardPage() {
         form={form}
         pdfFile={pdfFile}
         saving={menusSaving}
+        conversionProgress={conversionProgress}
         error={formError}
         onFormChange={setForm}
         onPdfSelect={setPdfFile}
