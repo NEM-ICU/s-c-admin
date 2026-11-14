@@ -80,7 +80,6 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
       pdf_path: section.pdf_path,
       image_paths: section.image_paths ?? [],
       page_count: section.page_count ?? 0,
-      version: section.version ?? 1,
     });
     setPdfFile(null);
     setFormError("");
@@ -133,7 +132,7 @@ export function useMenus({ onSuccess, onError }: UseMenusProps) {
   const handleDeleteSection = useCallback(
     async (section: MenuSection) => {
       const confirmed = window.confirm(
-        `Are you sure you want to permanently delete "${section.name}"?\n\nThis will remove its database record, original PDF, all generated WebP page images, and previous versions.\n\nThis action cannot be undone.`,
+        `Are you sure you want to permanently delete "${section.name}"?\n\nThis will remove its database record, original PDF, and all generated WebP page images.\n\nThis action cannot be undone.`,
       );
       if (!confirmed) return;
 

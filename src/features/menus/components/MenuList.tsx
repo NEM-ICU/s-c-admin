@@ -137,11 +137,7 @@ export default function MenuList({
                       <p className="font-semibold text-slate-900">
                         {section.name}
                       </p>
-                      {section.version > 1 && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
-                          v{section.version}
-                        </span>
-                      )}
+
                     </div>
                     <p className="mt-1 max-w-xs truncate text-xs text-slate-500">
                       {section.description || "No description"}

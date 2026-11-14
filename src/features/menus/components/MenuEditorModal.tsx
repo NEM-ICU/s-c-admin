@@ -170,8 +170,7 @@ export default function MenuEditorModal({
               {editingSection?.page_count ? (
                 <p className="inline-flex items-center gap-1.5 text-emerald-700 font-medium">
                   <ImageIcon size={13} />
-                  {editingSection.page_count} WebP page(s) published (v
-                  {editingSection.version})
+                  {editingSection.page_count} WebP page(s) published
                 </p>
               ) : null}
             </div>
